@@ -1,5 +1,6 @@
 package com.termux.api.apis;
 
+import android.annotation.SuppressLint;
 import android.app.job.JobInfo;
 import android.app.job.JobParameters;
 import android.app.job.JobScheduler;
@@ -8,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.net.NetworkRequest;
 import android.os.Build;
 import android.os.PersistableBundle;
 import androidx.annotation.RequiresApi;
@@ -53,7 +55,8 @@ public class JobSchedulerAPI {
             }
         }
         if (Build.VERSION.SDK_INT >= 28) {
-            description.add(String.format(Locale.ENGLISH, "(network: %s)", jobInfo.getRequiredNetwork().toString()));
+            final NetworkRequest network = jobInfo.getRequiredNetwork();
+            description.add(String.format(Locale.ENGLISH, "(network: %s)", network == null ? "none" : network.toString()));
         }
 
         return String.format(Locale.ENGLISH, "Job %d: %s\t%s", jobInfo.getId(), path,
@@ -208,6 +211,7 @@ public class JobSchedulerAPI {
 
 
 
+    @SuppressLint("SpecifyJobSchedulerIdRange")
     public static class JobSchedulerService extends JobService {
 
         public static final String SCRIPT_FILE_PATH = TermuxConstants.TERMUX_API_PACKAGE_NAME + ".jobscheduler_script_path";

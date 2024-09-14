@@ -1,12 +1,15 @@
-apply plugin: 'com.android.application'
+plugins {
+    id "com.android.application"
+}
 
 android {
+    namespace "com.termux.api"
+
     compileSdkVersion project.properties.compileSdkVersion.toInteger()
     def appVersionName = System.getenv("TERMUX_API_APP_VERSION_NAME") ?: ""
     def apkVersionTag = System.getenv("TERMUX_API_APK_VERSION_TAG") ?: ""
 
     defaultConfig {
-        applicationId "com.termux.api"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
         versionCode 51
@@ -34,6 +37,7 @@ android {
             minifyEnabled true
             shrinkResources false // Reproducible builds
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.debug
         }
 
         debug {
@@ -42,8 +46,10 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+
+        coreLibraryDesugaringEnabled true
     }
 
     applicationVariants.all { variant ->
@@ -64,11 +70,19 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.android.material:material:1.4.0'
-    implementation 'androidx.biometric:biometric:1.2.0-alpha03'
-    implementation 'androidx.media:media:1.4.3'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.2'
 
-    implementation 'com.termux.termux-app:termux-shared:8c1749ef96'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.biometric:biometric:1.2.0-alpha05'
+    implementation "androidx.work:work-runtime:2.9.1"
+    implementation "androidx.concurrent:concurrent-futures:1.2.0"
+    implementation 'androidx.media:media:1.7.0'
+    implementation 'com.cronutils:cron-utils:9.2.1'
+    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation "com.google.guava:guava:33.2.1-android"
+    implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
+
+    implementation 'com.termux.termux-app:termux-shared:0.119.0-beta.1'
     // Use if below libraries are published locally by termux-app with `./gradlew publishReleasePublicationToMavenLocal` and used with `mavenLocal()`.
     // If updates are done, republish there and sync project with gradle files here
     // https://github.com/termux/termux-app/wiki/Termux-Libraries

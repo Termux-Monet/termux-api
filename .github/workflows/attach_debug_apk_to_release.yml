@@ -1,4 +1,4 @@
-name: Attach Debug APK To Release
+name: Attach Debug APKsTo Release
 
 on:
   release:
@@ -15,6 +15,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.GITHUB_REF }}
+
+      - name: Setup java 17 as required by gradle
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Build and attach APK to release
         shell: bash {0}
@@ -55,10 +61,9 @@ jobs:
           fi
 
           echo "Attaching APK to github release"
-          if ! hub release edit \
-          -m "" \
-          -a "$APK_DIR_PATH/${APK_BASENAME_PREFIX}.apk" \
-          -a "$APK_DIR_PATH/sha256sums" \
-          "$RELEASE_VERSION_NAME"; then
+          if ! gh release upload "$RELEASE_VERSION_NAME" \
+            "$APK_DIR_PATH/${APK_BASENAME_PREFIX}.apk" \
+            "$APK_DIR_PATH/sha256sums" \
+          ; then
             exit_on_error "Attach APK to release failed for '$RELEASE_VERSION_NAME' release."
           fi

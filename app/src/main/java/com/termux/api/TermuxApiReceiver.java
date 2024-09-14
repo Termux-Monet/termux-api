@@ -8,8 +8,11 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.widget.Toast;
 
+import com.termux.api.apis.CronAPI;
+import com.termux.api.apis.AdbWifiAPI;
 import com.termux.api.apis.AudioAPI;
 import com.termux.api.apis.BatteryStatusAPI;
+import com.termux.api.apis.BluetoothScanAPI;
 import com.termux.api.apis.BrightnessAPI;
 import com.termux.api.apis.CallLogAPI;
 import com.termux.api.apis.CameraInfoAPI;
@@ -29,9 +32,11 @@ import com.termux.api.apis.MicRecorderAPI;
 import com.termux.api.apis.NfcAPI;
 import com.termux.api.apis.NotificationAPI;
 import com.termux.api.apis.NotificationListAPI;
+import com.termux.api.apis.PackageManagerAPI;
 import com.termux.api.apis.SAFAPI;
 import com.termux.api.apis.SensorAPI;
 import com.termux.api.apis.ShareAPI;
+import com.termux.api.apis.SimAPI;
 import com.termux.api.apis.SmsInboxAPI;
 import com.termux.api.apis.SmsSendAPI;
 import com.termux.api.apis.SpeechToTextAPI;
@@ -84,11 +89,19 @@ public class TermuxApiReceiver extends BroadcastReceiver {
         }
 
         switch (apiMethod) {
+            case "Cron":
+                CronAPI.onReceive(this, context, intent);
+                break;
             case "AudioInfo":
                 AudioAPI.onReceive(this, context, intent);
                 break;
             case "BatteryStatus":
                 BatteryStatusAPI.onReceive(this, context, intent);
+                break;
+            case "BluetoothScan":
+                if (TermuxApiPermissionActivity.checkAndRequestPermissions(context, intent, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    BluetoothScanAPI.onReceive(context, intent);
+                }
                 break;
             case "Brightness":
                 if (!Settings.System.canWrite(context)) {
@@ -146,7 +159,7 @@ public class TermuxApiReceiver extends BroadcastReceiver {
                 JobSchedulerAPI.onReceive(this, context, intent);
                 break;
             case "Keystore":
-                KeystoreAPI.onReceive(this, intent);
+                KeystoreAPI.onReceive(this, context, intent);
                 break;
             case "Location":
                 if (TermuxApiPermissionActivity.checkAndRequestPermissions(context, intent, Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -178,6 +191,19 @@ public class TermuxApiReceiver extends BroadcastReceiver {
                     NotificationListAPI.onReceive(this, context, intent);
                 }
                 break;
+            case "PackageGet":
+                PackageManagerAPI.onReceivePMGetApplicationInfo(this, context, intent);
+            case "PackageList":
+                PackageManagerAPI.onReceivePMListPackages(this, context, intent);
+                break;
+            case "PackageInstall":
+                if (TermuxApiPermissionActivity.checkAndRequestPermissions(context, intent, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    PackageManagerAPI.onReceivePMInstallPackage(this, context, intent);
+                }
+                break;
+            case "PackageUninstall":
+                PackageManagerAPI.onReceivePMUninstallPackage(this, context, intent);
+                break;
             case "Notification":
                 NotificationAPI.onReceiveShowNotification(this, context, intent);
                 break;
@@ -198,6 +224,11 @@ public class TermuxApiReceiver extends BroadcastReceiver {
                 break;
             case "Share":
                 ShareAPI.onReceive(this, context, intent);
+                break;
+            case "Sim":
+                if (TermuxApiPermissionActivity.checkAndRequestPermissions(context, intent, Manifest.permission.READ_PHONE_STATE)) {
+                      SimAPI.onReceive(this, context, intent);
+                }
                 break;
             case "SmsInbox":
                 if (TermuxApiPermissionActivity.checkAndRequestPermissions(context, intent, Manifest.permission.READ_SMS, Manifest.permission.READ_CONTACTS)) {
@@ -263,6 +294,11 @@ public class TermuxApiReceiver extends BroadcastReceiver {
                 break;
             case "WifiEnable":
                 WifiAPI.onReceiveWifiEnable(this, context, intent);
+                break;
+            case "AdbWifiEnable":
+                if (TermuxApiPermissionActivity.checkAndRequestPermissions(context, intent, Manifest.permission.WRITE_SECURE_SETTINGS)) {
+                    AdbWifiAPI.onReceive(this, context, intent);
+                }
                 break;
             default:
                 Logger.logError(LOG_TAG, "Unrecognized 'api_method' extra: '" + apiMethod + "'");
